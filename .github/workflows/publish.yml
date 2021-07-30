@@ -1,0 +1,27 @@
+name: Node.js Package
+
+on:
+    push:
+        branches:
+            # manually edit to deploy test branch
+            - publish
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://npm.pkg.github.com'
+      - run: npm install
+      - run: npm run build
+      - run: sed -i 's|unit-finance|'"$CI_REPOSITORY_OWNER_SLUG"'|g' package.json
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
